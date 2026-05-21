@@ -39,7 +39,33 @@ import {
   X,
 } from "lucide-react"
 
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { Progress } from "@/components/ui/progress"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTheme } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 
@@ -352,7 +378,6 @@ function AppShell({
               <p className="truncate text-sm font-semibold">
                 Policy Managment Studio
               </p>
-              <p className="text-xs text-muted-foreground">Governance suite</p>
             </div>
           </div>
 
@@ -363,21 +388,7 @@ function AppShell({
         </aside>
 
         <main className="min-w-0">
-          <header className="sticky top-0 z-20 flex min-h-16 flex-wrap items-center gap-3 border-b bg-background/95 px-4 backdrop-blur md:px-6">
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground lg:hidden">
-                <ShieldCheck className="size-5" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="truncate text-base font-semibold md:text-lg">
-                  Policy Managment Studio
-                </h1>
-                <p className="hidden text-xs text-muted-foreground sm:block">
-                  Policy ingestion, review, rules, and publishing
-                </p>
-              </div>
-            </div>
-
+          <header className="sticky top-0 z-20 flex min-h-14 items-center justify-end gap-3 border-b bg-background/95 px-4 backdrop-blur md:px-6">
             <Button
               variant="outline"
               size="icon"
@@ -842,27 +853,30 @@ function PolicyRefDetail({
         }
       />
 
-      <div className="rounded-lg border bg-card">
-        <div className="flex gap-1 border-b p-2">
-          <TabButton active={tab === "rules"} onClick={() => setTab("rules")}>
-            Rules
-          </TabButton>
-          <TabButton active={tab === "text"} onClick={() => setTab("text")}>
-            Policy Text
-          </TabButton>
-          <TabButton
-            active={tab === "summary"}
-            onClick={() => setTab("summary")}
-          >
-            AI Summary
-          </TabButton>
+      <Tabs
+        value={tab}
+        onValueChange={(value) =>
+          setTab(value as "rules" | "text" | "summary")
+        }
+        className="rounded-lg border bg-card"
+      >
+        <div className="border-b p-2">
+          <TabsList>
+            <TabsTrigger value="rules">Rules</TabsTrigger>
+            <TabsTrigger value="text">Policy Text</TabsTrigger>
+            <TabsTrigger value="summary">AI Summary</TabsTrigger>
+          </TabsList>
         </div>
-        <div className="p-4">
-          {tab === "rules" ? <RulesTable refId={ref.id} /> : null}
-          {tab === "text" ? <PolicyText refId={ref.id} /> : null}
-          {tab === "summary" ? <AiSummary refId={ref.id} /> : null}
-        </div>
-      </div>
+        <TabsContent value="rules" className="m-0 p-4">
+          <RulesTable refId={ref.id} />
+        </TabsContent>
+        <TabsContent value="text" className="m-0 p-4">
+          <PolicyText refId={ref.id} />
+        </TabsContent>
+        <TabsContent value="summary" className="m-0 p-4">
+          <AiSummary refId={ref.id} />
+        </TabsContent>
+      </Tabs>
     </PageFrame>
   )
 }
@@ -939,33 +953,29 @@ function AddPolicySheet({
     }, 1600)
   }
 
-  if (!isOpen) {
-    return null
-  }
-
   return (
-    <div className="fixed inset-0 z-50">
-      <div
-        className="absolute inset-0 animate-in fade-in bg-background/70 backdrop-blur-sm duration-150"
-        onClick={requestClose}
-      />
-      <section
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          requestClose()
+        }
+      }}
+    >
+      <SheetContent
+        side="right"
+        showCloseButton={false}
         className={cn(
-          "absolute right-0 top-0 flex h-full animate-in flex-col border-l bg-background shadow-2xl fade-in slide-in-from-right-8 duration-200",
+          "bg-background p-0 sm:max-w-none",
           file ? "w-[min(64rem,100vw)]" : "w-[min(30rem,100vw)]"
         )}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="add-policy-title"
       >
-        <div className="flex items-center justify-between border-b p-4">
+        <SheetHeader className="flex-row items-start justify-between gap-4 border-b p-4 text-left">
           <div>
-            <h2 id="add-policy-title" className="text-base font-semibold">
-              Add policy
-            </h2>
-            <p className="text-sm text-muted-foreground">
+            <SheetTitle className="text-base">Add policy</SheetTitle>
+            <SheetDescription className="text-sm">
               Upload a policy document for mock AI processing.
-            </p>
+            </SheetDescription>
           </div>
           <Button
             variant="outline"
@@ -975,12 +985,13 @@ function AddPolicySheet({
             onClick={requestClose}
           >
             <X />
+            <span className="sr-only">Close</span>
           </Button>
-        </div>
+        </SheetHeader>
 
         <div className="flex-1 overflow-y-auto p-4">
           {file ? (
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               <div className="rounded-lg border bg-card p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -1019,113 +1030,116 @@ function AddPolicySheet({
                     <span>Uploading policy</span>
                     <span>{progress}%</span>
                   </div>
-                  <div className="h-2 rounded-full bg-muted">
-                    <div
-                      className="h-2 rounded-full bg-primary transition-all"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
+                  <Progress value={progress} />
                 </div>
               ) : null}
             </div>
           ) : (
-            <div className="max-w-md space-y-5">
-                <Field label="Document Type">
-                  <div className="relative">
-                    <select
-                      className="h-9 w-full appearance-none rounded-md border bg-background px-3 pr-9 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                      disabled={isUploading}
-                      value={policyType}
-                      onChange={(event) =>
-                        setPolicyType(event.target.value as PolicyType)
-                      }
-                    >
-                      <option value="Group Policy">Group Policy</option>
-                      <option value="Country Addenda">Country Addenda</option>
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                  </div>
-                </Field>
+            <FieldGroup className="max-w-md gap-5">
+              <Field>
+                <FieldLabel>Document Type</FieldLabel>
+                <Select
+                  disabled={isUploading}
+                  value={policyType}
+                  onValueChange={(value) => setPolicyType(value as PolicyType)}
+                >
+                  <SelectTrigger className="h-9 w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="Group Policy">Group Policy</SelectItem>
+                      <SelectItem value="Country Addenda">
+                        Country Addenda
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </Field>
 
-                {policyType === "Country Addenda" ? (
-                  <Field label="Country">
-                    <div className="relative">
-                      <select
-                        className="h-9 w-full appearance-none rounded-md border bg-background px-3 pr-9 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
-                        disabled={isUploading}
-                        value={country}
-                        onChange={(event) =>
-                          setCountry(event.target.value as Country)
-                        }
-                      >
-                        {countries.map((item) => (
-                          <option key={item} value={item}>
-                            {item}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    </div>
-                  </Field>
-                ) : null}
-
-                <Field label="Version">
-                  <input
-                    className="h-9 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/30"
+              {policyType === "Country Addenda" ? (
+                <Field>
+                  <FieldLabel>Country</FieldLabel>
+                  <Select
                     disabled={isUploading}
-                    value={version}
-                    onChange={(event) => setVersion(event.target.value)}
-                  />
-                </Field>
-
-                <Field label="Policy Document">
-                  <div
-                    className="rounded-lg border border-dashed bg-muted/20 p-5 text-center"
-                    onDragOver={(event) => event.preventDefault()}
-                    onDrop={(event) => {
-                      event.preventDefault()
-                      chooseFile(event.dataTransfer.files[0])
-                    }}
+                    value={country}
+                    onValueChange={(value) => setCountry(value as Country)}
                   >
-                    <UploadCloud className="mx-auto mb-3 size-8 text-primary" />
-                    <p className="text-sm font-medium">
-                      Drag and drop a Word document
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Supports .docx for this prototype
-                    </p>
-                    <Button
-                      className="mt-4"
-                      disabled={isUploading}
-                      type="button"
-                      variant="outline"
-                      onClick={() => inputRef.current?.click()}
-                    >
-                      Choose file
-                    </Button>
-                    <input
-                      ref={inputRef}
-                      className="hidden"
-                      type="file"
-                      accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                      onChange={(event) => chooseFile(event.target.files?.[0])}
-                    />
-                  </div>
+                    <SelectTrigger className="h-9 w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {countries.map((item) => (
+                          <SelectItem key={item} value={item}>
+                            {item}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </Field>
-            </div>
+              ) : null}
+
+              <Field>
+                <FieldLabel>Version</FieldLabel>
+                <Input
+                  className="h-9"
+                  disabled={isUploading}
+                  value={version}
+                  onChange={(event) => setVersion(event.target.value)}
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel>Policy Document</FieldLabel>
+                <div
+                  className="rounded-lg border border-dashed bg-muted/20 p-5 text-center"
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => {
+                    event.preventDefault()
+                    chooseFile(event.dataTransfer.files[0])
+                  }}
+                >
+                  <UploadCloud className="mx-auto mb-3 size-8 text-primary" />
+                  <p className="text-sm font-medium">
+                    Drag and drop a Word document
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Supports .docx for this prototype
+                  </p>
+                  <Button
+                    className="mt-4"
+                    disabled={isUploading}
+                    type="button"
+                    variant="outline"
+                    onClick={() => inputRef.current?.click()}
+                  >
+                    Choose file
+                  </Button>
+                  <Input
+                    ref={inputRef}
+                    className="hidden"
+                    type="file"
+                    accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onChange={(event) => chooseFile(event.target.files?.[0])}
+                  />
+                </div>
+              </Field>
+            </FieldGroup>
           )}
         </div>
 
-        <div className="flex justify-end gap-2 border-t p-4">
+        <SheetFooter className="flex-row justify-end border-t p-4">
           <Button variant="outline" disabled={isUploading} onClick={requestClose}>
             Cancel
           </Button>
           <Button disabled={!file || isUploading} onClick={submitPolicy}>
             Add Policy
           </Button>
-        </div>
-      </section>
-    </div>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }
 
@@ -1235,21 +1249,6 @@ function PageHeader({
   )
 }
 
-function Field({
-  children,
-  label,
-}: {
-  children: React.ReactNode
-  label: string
-}) {
-  return (
-    <div className="space-y-2">
-      <span className="text-sm font-medium">{label}</span>
-      {children}
-    </div>
-  )
-}
-
 function ReadOnlyMeta({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border bg-muted/30 px-3 py-2">
@@ -1276,9 +1275,9 @@ function SummaryCard({
 
 function StatusBadge({ status }: { status: PolicyStatus }) {
   return (
-    <span
+    <Badge
+      variant="outline"
       className={cn(
-        "inline-flex rounded-md px-2 py-1 text-xs font-medium",
         status === "Processing" &&
           "bg-amber-500/10 text-amber-700 dark:text-amber-300",
         status === "Ready for Review" &&
@@ -1288,7 +1287,7 @@ function StatusBadge({ status }: { status: PolicyStatus }) {
       )}
     >
       {status}
-    </span>
+    </Badge>
   )
 }
 
@@ -1301,9 +1300,9 @@ function RefStatusBadge({ status }: { status: RefStatus }) {
         : "Reviewed"
 
   return (
-    <span
+    <Badge
+      variant="outline"
       className={cn(
-        "inline-flex h-6 items-center whitespace-nowrap rounded px-2 text-xs font-medium",
         status === "Needs Review" &&
           "bg-amber-500/10 text-amber-700 dark:text-amber-300",
         status === "Reviewed" &&
@@ -1312,15 +1311,15 @@ function RefStatusBadge({ status }: { status: RefStatus }) {
       )}
     >
       {label}
-    </span>
+    </Badge>
   )
 }
 
 function ChangeStatusBadge({ status }: { status: ChangeStatus }) {
   return (
-    <span
+    <Badge
+      variant="outline"
       className={cn(
-        "inline-flex h-6 items-center whitespace-nowrap rounded px-2 text-xs font-medium",
         status === "Changed" &&
           "bg-blue-500/10 text-blue-700 dark:text-blue-300",
         status === "Unchanged" &&
@@ -1333,36 +1332,12 @@ function ChangeStatusBadge({ status }: { status: ChangeStatus }) {
       title={status}
     >
       {status}
-    </span>
-  )
-}
-
-function TabButton({
-  active,
-  children,
-  onClick,
-}: {
-  active: boolean
-  children: React.ReactNode
-  onClick: () => void
-}) {
-  return (
-    <button
-      className={cn(
-        "rounded-md px-3 py-1.5 text-sm transition-colors",
-        active
-          ? "bg-primary text-primary-foreground"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-      )}
-      onClick={onClick}
-      type="button"
-    >
-      {children}
-    </button>
+    </Badge>
   )
 }
 
 function RulesTable({ refId }: { refId: string }) {
+  const [view, setView] = React.useState<"default" | "diff">("default")
   const [expandedRule, setExpandedRule] = React.useState(`${refId}-R01`)
   const rules = [
     {
@@ -1420,8 +1395,32 @@ function RulesTable({ refId }: { refId: string }) {
     },
   ]
 
+  const isDiffView = view === "diff"
+  const visibleRules = isDiffView
+    ? rules
+    : rules.filter((rule) => rule.diff !== "Deleted")
+
   return (
-    <div className="overflow-x-auto">
+    <div className="flex flex-col gap-3">
+      <div className="flex justify-end">
+        <ToggleGroup
+          type="single"
+          value={view}
+          onValueChange={(value) => {
+            if (value === "default" || value === "diff") {
+              setView(value)
+            }
+          }}
+          variant="outline"
+          size="sm"
+          spacing={0}
+        >
+          <ToggleGroupItem value="default">Default</ToggleGroupItem>
+          <ToggleGroupItem value="diff">Diff view</ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+
+      <div className="overflow-x-auto">
       <table className="w-full min-w-[820px] text-left text-sm">
         <thead className="border-b text-xs text-muted-foreground">
           <tr>
@@ -1434,23 +1433,28 @@ function RulesTable({ refId }: { refId: string }) {
           </tr>
         </thead>
         <tbody className="divide-y">
-          {rules.map((rule) => (
+          {visibleRules.map((rule) => (
             <React.Fragment key={rule.id}>
               <tr
                 className={cn(
-                  "border-l-2",
-                  rule.diff === "Modified" &&
+                  isDiffView && "border-l-2",
+                  isDiffView &&
+                    rule.diff === "Modified" &&
                     "border-l-blue-500 bg-blue-500/[0.03]",
-                  rule.diff === "Added" &&
+                  isDiffView &&
+                    rule.diff === "Added" &&
                     "border-l-emerald-500 bg-emerald-500/[0.03]",
-                  rule.diff === "Deleted" &&
+                  isDiffView &&
+                    rule.diff === "Deleted" &&
                     "border-l-red-500 bg-red-500/[0.03]",
-                  rule.diff === "Unchanged" && "border-l-transparent"
+                  isDiffView &&
+                    rule.diff === "Unchanged" &&
+                    "border-l-transparent"
                 )}
               >
                 <td className="px-3 py-3">
                   <div className="flex items-center gap-2">
-                    {rule.diff === "Modified" ? (
+                    {isDiffView && rule.diff === "Modified" ? (
                       <button
                         className="flex size-6 items-center justify-center rounded-md border hover:bg-muted"
                         type="button"
@@ -1467,27 +1471,29 @@ function RulesTable({ refId }: { refId: string }) {
                           <ChevronRight className="size-3.5" />
                         )}
                       </button>
-                    ) : (
+                    ) : isDiffView ? (
                       <span className="size-6" />
-                    )}
+                    ) : null}
                     <div>
                       <p
                         className={cn(
                           "font-medium",
-                          rule.diff === "Deleted" &&
+                          isDiffView &&
+                            rule.diff === "Deleted" &&
                             "text-muted-foreground line-through"
                         )}
                       >
                         {rule.id}
                       </p>
-                      <RuleDiffBadge status={rule.diff} />
+                      {isDiffView ? <RuleDiffBadge status={rule.diff} /> : null}
                     </div>
                   </div>
                 </td>
                 <td
                   className={cn(
                     "px-3 py-3",
-                    rule.diff === "Deleted" &&
+                    isDiffView &&
+                      rule.diff === "Deleted" &&
                       "text-muted-foreground line-through"
                   )}
                 >
@@ -1496,7 +1502,8 @@ function RulesTable({ refId }: { refId: string }) {
                 <td
                   className={cn(
                     "px-3 py-3",
-                    rule.diff === "Deleted" &&
+                    isDiffView &&
+                      rule.diff === "Deleted" &&
                       "text-muted-foreground line-through"
                   )}
                 >
@@ -1505,7 +1512,8 @@ function RulesTable({ refId }: { refId: string }) {
                 <td
                   className={cn(
                     "px-3 py-3",
-                    rule.diff === "Deleted" &&
+                    isDiffView &&
+                      rule.diff === "Deleted" &&
                       "text-muted-foreground line-through"
                   )}
                 >
@@ -1514,7 +1522,8 @@ function RulesTable({ refId }: { refId: string }) {
                 <td
                   className={cn(
                     "px-3 py-3",
-                    rule.diff === "Deleted" &&
+                    isDiffView &&
+                      rule.diff === "Deleted" &&
                       "text-muted-foreground line-through"
                   )}
                 >
@@ -1523,13 +1532,15 @@ function RulesTable({ refId }: { refId: string }) {
                 <td
                   className={cn(
                     "px-3 py-3 text-muted-foreground",
-                    rule.diff === "Deleted" && "line-through"
+                    isDiffView && rule.diff === "Deleted" && "line-through"
                   )}
                 >
                   {rule.documents}
                 </td>
               </tr>
-              {rule.diff === "Modified" && expandedRule === rule.id ? (
+              {isDiffView &&
+              rule.diff === "Modified" &&
+              expandedRule === rule.id ? (
                 <tr>
                   <td colSpan={6} className="bg-muted/20 px-3 py-3">
                     <div className="ml-8 rounded-md border bg-background">
@@ -1559,15 +1570,17 @@ function RulesTable({ refId }: { refId: string }) {
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
 
 function RuleDiffBadge({ status }: { status: RuleDiffStatus }) {
   return (
-    <span
+    <Badge
+      variant="outline"
       className={cn(
-        "mt-1 inline-flex h-5 items-center whitespace-nowrap rounded px-1.5 text-[0.6875rem] font-medium",
+        "mt-1",
         status === "Modified" &&
           "bg-blue-500/10 text-blue-700 dark:text-blue-300",
         status === "Added" &&
@@ -1577,7 +1590,7 @@ function RuleDiffBadge({ status }: { status: RuleDiffStatus }) {
       )}
     >
       {status}
-    </span>
+    </Badge>
   )
 }
 
