@@ -131,24 +131,3 @@
     min-height: 100svh;
   }
 }
-
-.docx-preview-frame {
-  max-height: calc(100svh - 18rem);
-  min-height: 24rem;
-  overflow: auto;
-  border-radius: var(--radius-md);
-  background: var(--muted);
-  padding: 0.75rem;
-  color: initial;
-}
-
-.docx-preview-frame .docx-wrapper {
-  background: transparent;
-  padding: 0;
-}
-
-.docx-preview-frame .docx {
-  margin: 0 auto 0.75rem;
-  box-shadow: 0 12px 28px rgb(0 0 0 / 18%);
-  transform-origin: top center;
-}

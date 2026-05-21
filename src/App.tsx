@@ -1,5 +1,4 @@
 import * as React from "react"
-import { renderAsync } from "docx-preview"
 import {
   BrowserRouter,
   Link,
@@ -926,6 +925,13 @@ function AddPolicySheet({
     setFile(nextFile)
   }
 
+  function clearFile() {
+    setFile(null)
+    if (inputRef.current) {
+      inputRef.current.value = ""
+    }
+  }
+
   function submitPolicy() {
     if (!file || isUploading) {
       return
@@ -965,10 +971,7 @@ function AddPolicySheet({
       <SheetContent
         side="right"
         showCloseButton={false}
-        className={cn(
-          "bg-background p-0 sm:max-w-none",
-          file ? "w-[min(64rem,100vw)]" : "w-[min(30rem,100vw)]"
-        )}
+        className="w-[min(30rem,100vw)] bg-background p-0 sm:max-w-none"
       >
         <SheetHeader className="flex-row items-start justify-between gap-4 border-b p-4 text-left">
           <div>
@@ -990,109 +993,87 @@ function AddPolicySheet({
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto p-4">
-          {file ? (
-            <div className="flex flex-col gap-4">
-              <div className="rounded-lg border bg-card p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-medium">{file.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {(file.size / 1024).toFixed(1)} KB detected as Word
-                      document
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    disabled={isUploading}
-                    onClick={() => setFile(null)}
-                  >
-                    Clear document
-                  </Button>
-                </div>
+          <FieldGroup className="max-w-md gap-5">
+            <Field>
+              <FieldLabel>Document Type</FieldLabel>
+              <Select
+                disabled={isUploading}
+                value={policyType}
+                onValueChange={(value) => setPolicyType(value as PolicyType)}
+              >
+                <SelectTrigger className="h-9 w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="Group Policy">Group Policy</SelectItem>
+                    <SelectItem value="Country Addenda">
+                      Country Addenda
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Field>
 
-                <div className="mt-4 grid gap-3 md:grid-cols-3">
-                  <ReadOnlyMeta label="Document Type" value={policyType} />
-                  <ReadOnlyMeta
-                    label="Country"
-                    value={policyType === "Group Policy" ? "Group" : country}
-                  />
-                  <ReadOnlyMeta label="Version" value={version} />
-                </div>
-              </div>
-
-              <div className="rounded-lg border bg-card p-4">
-                <DocxPreview file={file} />
-              </div>
-
-              {isUploading ? (
-                <div className="rounded-lg border bg-card p-4">
-                  <div className="mb-2 flex justify-between text-sm">
-                    <span>Uploading policy</span>
-                    <span>{progress}%</span>
-                  </div>
-                  <Progress value={progress} />
-                </div>
-              ) : null}
-            </div>
-          ) : (
-            <FieldGroup className="max-w-md gap-5">
+            {policyType === "Country Addenda" ? (
               <Field>
-                <FieldLabel>Document Type</FieldLabel>
+                <FieldLabel>Country</FieldLabel>
                 <Select
                   disabled={isUploading}
-                  value={policyType}
-                  onValueChange={(value) => setPolicyType(value as PolicyType)}
+                  value={country}
+                  onValueChange={(value) => setCountry(value as Country)}
                 >
                   <SelectTrigger className="h-9 w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="Group Policy">Group Policy</SelectItem>
-                      <SelectItem value="Country Addenda">
-                        Country Addenda
-                      </SelectItem>
+                      {countries.map((item) => (
+                        <SelectItem key={item} value={item}>
+                          {item}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
               </Field>
+            ) : null}
 
-              {policyType === "Country Addenda" ? (
-                <Field>
-                  <FieldLabel>Country</FieldLabel>
-                  <Select
-                    disabled={isUploading}
-                    value={country}
-                    onValueChange={(value) => setCountry(value as Country)}
-                  >
-                    <SelectTrigger className="h-9 w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {countries.map((item) => (
-                          <SelectItem key={item} value={item}>
-                            {item}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
-              ) : null}
+            <Field>
+              <FieldLabel>Version</FieldLabel>
+              <Input
+                className="h-9"
+                disabled={isUploading}
+                value={version}
+                onChange={(event) => setVersion(event.target.value)}
+              />
+            </Field>
 
-              <Field>
-                <FieldLabel>Version</FieldLabel>
-                <Input
-                  className="h-9"
-                  disabled={isUploading}
-                  value={version}
-                  onChange={(event) => setVersion(event.target.value)}
-                />
-              </Field>
-
-              <Field>
-                <FieldLabel>Policy Document</FieldLabel>
+            <Field>
+              <FieldLabel>Policy Document</FieldLabel>
+              {file ? (
+                <div className="rounded-lg border bg-card p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                      <FileText className="size-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{file.name}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {(file.size / 1024).toFixed(1)} KB Word document
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isUploading}
+                      onClick={clearFile}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+              ) : (
                 <div
                   className="rounded-lg border border-dashed bg-muted/20 p-5 text-center"
                   onDragOver={(event) => event.preventDefault()}
@@ -1125,9 +1106,19 @@ function AddPolicySheet({
                     onChange={(event) => chooseFile(event.target.files?.[0])}
                   />
                 </div>
-              </Field>
-            </FieldGroup>
-          )}
+              )}
+            </Field>
+
+            {isUploading ? (
+              <div className="rounded-lg border bg-card p-4">
+                <div className="mb-2 flex justify-between text-sm">
+                  <span>Uploading policy</span>
+                  <span>{progress}%</span>
+                </div>
+                <Progress value={progress} />
+              </div>
+            ) : null}
+          </FieldGroup>
         </div>
 
         <SheetFooter className="flex-row justify-end border-t p-4">
@@ -1145,55 +1136,6 @@ function AddPolicySheet({
 
 function PageFrame({ children }: { children: React.ReactNode }) {
   return <div className="space-y-5 p-4 md:p-6">{children}</div>
-}
-
-function DocxPreview({ file }: { file: File }) {
-  const previewRef = React.useRef<HTMLDivElement>(null)
-  const styleRef = React.useRef<HTMLDivElement>(null)
-
-  React.useEffect(() => {
-    const preview = previewRef.current
-    const style = styleRef.current
-
-    if (!preview || !style) {
-      return
-    }
-
-    let cancelled = false
-    preview.replaceChildren("Rendering document preview...")
-    style.replaceChildren()
-
-    renderAsync(file, preview, style, {
-      breakPages: true,
-      className: "docx-preview",
-      experimental: true,
-      ignoreFonts: true,
-      inWrapper: true,
-      renderHeaders: true,
-      renderFooters: true,
-    }).catch(() => {
-      if (cancelled) {
-        return
-      }
-
-      preview.replaceChildren(
-        "Could not render this document preview. Please choose a valid .docx file."
-      )
-    })
-
-    return () => {
-      cancelled = true
-      preview.replaceChildren()
-      style.replaceChildren()
-    }
-  }, [file])
-
-  return (
-    <>
-      <div ref={styleRef} />
-      <div className="docx-preview-frame" ref={previewRef} />
-    </>
-  )
 }
 
 function PageHeader({
@@ -1245,15 +1187,6 @@ function PageHeader({
         </div>
         {action}
       </div>
-    </div>
-  )
-}
-
-function ReadOnlyMeta({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md border bg-muted/30 px-3 py-2">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-sm font-medium">{value}</p>
     </div>
   )
 }
