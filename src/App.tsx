@@ -736,21 +736,28 @@ function PolicyDetail({
 
       <div className="overflow-hidden rounded-lg border bg-card">
         <div className="border-b p-4">
-          <h2 className="text-sm font-semibold">Policy references</h2>
+          <h2 className="text-sm font-semibold">
+            {policy.policyType === "Group Policy"
+              ? "Client segments"
+              : "Policy references"}
+          </h2>
           <p className="text-xs text-muted-foreground">
-            Compare extracted policy chunks against the previous published version.
+            {policy.policyType === "Group Policy"
+              ? "Review grouped rule sets by client segment before publishing."
+              : "Compare extracted policy chunks against the previous published version."}
           </p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="border-b bg-muted/40 text-xs text-muted-foreground">
               <tr>
-                <th className="w-36 px-4 py-3 font-medium">Policy Ref</th>
+                <th className="w-40 px-4 py-3 font-medium">
+                  {policy.policyType === "Group Policy"
+                    ? "Client Segment"
+                    : "Policy Ref"}
+                </th>
                 <th className="w-20 px-4 py-3 font-medium">Diff</th>
                 <th className="px-4 py-3 font-medium">No. of Rules</th>
-                {policy.policyType === "Group Policy" ? (
-                  <th className="px-4 py-3 font-medium">Client Segment</th>
-                ) : null}
                 <th className="px-4 py-3 font-medium">Policy Summary</th>
                 <th className="px-4 py-3 font-medium">Review</th>
                 <th className="px-4 py-3 text-right font-medium">Actions</th>
@@ -759,16 +766,13 @@ function PolicyDetail({
             <tbody className="divide-y">
               {policy.refs.map((ref) => (
                 <tr key={ref.id} className="hover:bg-muted/30">
-                  <td className="w-36 whitespace-nowrap px-4 py-3 font-medium">
-                    {ref.id}
+                  <td className="w-40 whitespace-nowrap px-4 py-3 font-medium">
+                    {policy.policyType === "Group Policy" ? ref.segment : ref.id}
                   </td>
                   <td className="w-20 px-4 py-3">
                     <ChangeStatusBadge status={ref.changeStatus} />
                   </td>
                   <td className="px-4 py-3">{ref.ruleCount}</td>
-                  {policy.policyType === "Group Policy" ? (
-                    <td className="px-4 py-3">{ref.segment}</td>
-                  ) : null}
                   <td className="px-4 py-3 text-muted-foreground">
                     {ref.summary}
                   </td>
@@ -809,16 +813,19 @@ function PolicyRefDetail({
     return <MissingPolicy />
   }
 
+  const detailTitle =
+    policy.policyType === "Group Policy" ? (ref.segment ?? ref.id) : ref.id
+
   return (
     <PageFrame>
       <PageHeader
         backTo={`/policies/${policy.id}`}
-        title={ref.id}
+        title={detailTitle}
         description={ref.summary}
         breadcrumbs={[
           { label: "Policy Library", to: "/policies" },
           { label: policy.documentName, to: `/policies/${policy.id}` },
-          { label: ref.id },
+          { label: detailTitle },
         ]}
         action={
           <Button
@@ -944,8 +951,8 @@ function AddPolicySheet({
       />
       <section
         className={cn(
-          "absolute right-0 top-0 flex h-full w-full animate-in flex-col border-l bg-background shadow-2xl fade-in slide-in-from-right-8 duration-200",
-          file ? "max-w-5xl" : "max-w-xl"
+          "absolute right-0 top-0 flex h-full animate-in flex-col border-l bg-background shadow-2xl fade-in slide-in-from-right-8 duration-200",
+          file ? "w-[min(64rem,100vw)]" : "w-[min(30rem,100vw)]"
         )}
         role="dialog"
         aria-modal="true"
