@@ -1,0 +1,49 @@
+The new `node` view provides an alternative to the existing rectangular card view.
+
+In node view:
+
+- Every entity is rendered as a circle.
+- Organisations and individuals use the same circular shape.
+- The main entity is also circular but larger and uses the configured main-entity color.
+- Entity names and entity kinds appear beside the circles.
+- No A/B/C initials are displayed inside nodes.
+
+Switch modes using:
+
+```js
+chart.setViewMode("node");
+chart.setViewMode("card");
+```
+
+Or:
+
+```js
+chart.setConfig({
+  viewMode: "node",
+});
+```
+
+Circle sizes are configurable:
+
+```js
+chart.setConfig({
+  layout: {
+    nodeRadius: 36,
+    mainNodeRadius: 48,
+  },
+});
+```
+
+Node captions are positioned perpendicular to the radial connection direction. This prevents relationship lines from passing through entity names.
+
+Relationship labels also detect collisions with:
+
+- Circular nodes
+- Entity names
+- Entity-kind labels
+- Connection-count badges
+- Other relationship labels
+
+When an overlap is detected, the relationship label moves perpendicular to its edge until it finds a clear position.
+
+The graph data and layout remain unchanged when switching views. Expanded branches, node positions, edge directions, edge colors, zoom, and dragging continue to work in both modes.
